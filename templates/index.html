@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sentiment Analysis</title>
+    <title>Advanced Sentiment Analysis</title>
     <style>
         * {
             margin: 0;
@@ -16,32 +16,55 @@
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
             padding: 20px;
         }
 
         .container {
+            max-width: 1200px;
+            margin: 0 auto;
             background: white;
             border-radius: 10px;
             box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
-            max-width: 600px;
-            width: 100%;
-            padding: 40px;
+            overflow: hidden;
         }
 
-        h1 {
-            color: #333;
-            margin-bottom: 10px;
+        .header {
+            background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+            color: white;
+            padding: 30px;
             text-align: center;
         }
 
-        .subtitle {
-            text-align: center;
-            color: #666;
-            margin-bottom: 30px;
-            font-size: 14px;
+        .tabs {
+            display: flex;
+            background: #f8f9fa;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .tab {
+            padding: 15px 30px;
+            cursor: pointer;
+            border: none;
+            background: none;
+            font-size: 16px;
+            font-weight: 500;
+            color: #6c757d;
+            transition: all 0.3s;
+        }
+
+        .tab.active {
+            color: #3498db;
+            border-bottom: 3px solid #3498db;
+            background: white;
+        }
+
+        .tab-content {
+            display: none;
+            padding: 30px;
+        }
+
+        .tab-content.active {
+            display: block;
         }
 
         .form-group {
@@ -55,27 +78,32 @@
             font-weight: 500;
         }
 
-        textarea {
+        textarea,
+        input[type="text"],
+        input[type="file"] {
             width: 100%;
             padding: 12px;
             border: 2px solid #ddd;
             border-radius: 5px;
             font-size: 14px;
             font-family: inherit;
-            resize: vertical;
-            min-height: 120px;
             transition: border-color 0.3s;
         }
 
-        textarea:focus {
+        textarea:focus,
+        input[type="text"]:focus {
             outline: none;
-            border-color: #667eea;
+            border-color: #3498db;
         }
 
-        .btn-predict {
-            width: 100%;
-            padding: 12px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        textarea {
+            resize: vertical;
+            min-height: 120px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
             color: white;
             border: none;
             border-radius: 5px;
@@ -85,15 +113,11 @@
             transition: transform 0.2s;
         }
 
-        .btn-predict:hover {
+        .btn:hover {
             transform: translateY(-2px);
         }
 
-        .btn-predict:active {
-            transform: translateY(0);
-        }
-
-        .btn-predict:disabled {
+        .btn:disabled {
             opacity: 0.6;
             cursor: not-allowed;
         }
@@ -110,34 +134,42 @@
             display: block;
         }
 
-        .result-label {
-            font-size: 14px;
-            color: #666;
+        .model-comparison {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .model-result {
+            padding: 15px;
+            border-radius: 5px;
+            background: white;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .model-header {
+            font-weight: bold;
             margin-bottom: 10px;
+            color: #2c3e50;
         }
 
         .prediction {
-            font-size: 28px;
+            font-size: 24px;
             font-weight: bold;
-            margin-bottom: 15px;
+            margin: 10px 0;
         }
 
         .prediction.positive {
-            color: #28a745;
+            color: #27ae60;
         }
 
         .prediction.negative {
-            color: #dc3545;
+            color: #e74c3c;
         }
 
         .confidence-bar {
             margin-top: 15px;
-        }
-
-        .confidence-label {
-            font-size: 14px;
-            color: #666;
-            margin-bottom: 8px;
         }
 
         .bar-container {
@@ -151,7 +183,7 @@
 
         .bar-negative {
             height: 100%;
-            background: #dc3545;
+            background: #e74c3c;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -162,7 +194,7 @@
 
         .bar-positive {
             height: 100%;
-            background: #28a745;
+            background: #27ae60;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -171,15 +203,34 @@
             font-weight: 600;
         }
 
+        .agreement {
+            text-align: center;
+            padding: 10px;
+            margin-top: 15px;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+
+        .agreement.yes {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .agreement.no {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
         .loading {
             display: none;
             text-align: center;
-            color: #667eea;
+            color: #3498db;
+            padding: 20px;
         }
 
         .spinner {
             border: 3px solid #f3f3f3;
-            border-top: 3px solid #667eea;
+            border-top: 3px solid #3498db;
             border-radius: 50%;
             width: 30px;
             height: 30px;
@@ -196,100 +247,498 @@
                 transform: rotate(360deg);
             }
         }
+
+        .file-info {
+            margin-top: 10px;
+            padding: 10px;
+            background: #e8f4fd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        .results-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        .results-table th,
+        .results-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .results-table th {
+            background: #f8f9fa;
+            font-weight: 600;
+        }
+
+        .positive-badge {
+            background: #27ae60;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 3px;
+            font-size: 12px;
+        }
+
+        .negative-badge {
+            background: #e74c3c;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 3px;
+            font-size: 12px;
+        }
     </style>
 </head>
 
 <body>
     <div class="container">
-        <h1>🎬 Sentiment Analysis</h1>
-        <p class="subtitle">Analyze movie reviews - Positive or Negative?</p>
-
-        <div class="form-group">
-            <label for="review">Enter your movie review:</label>
-            <textarea id="review" placeholder="Write your review here..."></textarea>
+        <div class="header">
+            <h1>🎬 Advanced Sentiment Analysis</h1>
+            <p>Compare Scratch Model vs Deep Learning Model</p>
         </div>
 
-        <button class="btn-predict" id="predictBtn">Predict Sentiment</button>
-
-        <div class="loading" id="loading">
-            <div class="spinner"></div>
-            <p>Analyzing...</p>
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('single')">Single Review</button>
+            <button class="tab" onclick="switchTab('file')">Upload File</button>
+            <button class="tab" onclick="switchTab('url')">URL Analysis</button>
+            <button class="tab" onclick="switchTab('batch')">Batch Analysis</button>
         </div>
 
-        <div class="result" id="result">
-            <div class="result-label">Prediction Result:</div>
-            <div class="prediction" id="predictionLabel"></div>
+        <!-- Single Review Tab -->
+        <div id="single" class="tab-content active">
+            <div class="form-group">
+                <label for="review">Enter your review:</label>
+                <textarea id="review" placeholder="Write your review here..."></textarea>
+            </div>
+            <button class="btn" onclick="analyzeSingle()">Compare Both Models</button>
 
-            <div class="confidence-bar">
-                <div class="confidence-label">Probability Distribution:</div>
-                <div class="bar-container">
-                    <div class="bar-negative" id="barNegative"></div>
-                    <div class="bar-positive" id="barPositive"></div>
+            <div class="loading" id="loadingSingle">
+                <div class="spinner"></div>
+                <p>Analyzing with both models...</p>
+            </div>
+
+            <div class="result" id="resultSingle">
+                <div class="model-comparison">
+                    <div class="model-result">
+                        <div class="model-header">🤖 Scratch Model</div>
+                        <div class="prediction" id="scratchPrediction"></div>
+                        <div class="confidence-bar">
+                            <div class="bar-container">
+                                <div class="bar-negative" id="scratchBarNegative"></div>
+                                <div class="bar-positive" id="scratchBarPositive"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="model-result">
+                        <div class="model-header">🧠 Deep Learning Model</div>
+                        <div class="prediction" id="dlPrediction"></div>
+                        <div class="confidence-bar">
+                            <div class="bar-container">
+                                <div class="bar-negative" id="dlBarNegative"></div>
+                                <div class="bar-positive" id="dlBarPositive"></div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
+                <div class="agreement" id="agreement"></div>
+            </div>
+        </div>
+
+        <!-- File Upload Tab -->
+        <div id="file" class="tab-content">
+            <div class="form-group">
+                <label for="fileUpload">Upload file (TXT or CSV):</label>
+                <input type="file" id="fileUpload" accept=".txt,.csv">
+                <div class="file-info">
+                    <strong>Supported formats:</strong><br>
+                    • TXT: One review per line<br>
+                    • CSV: First column should contain reviews
+                </div>
+            </div>
+            <button class="btn" onclick="analyzeFile()">Analyze File</button>
+
+            <div class="loading" id="loadingFile">
+                <div class="spinner"></div>
+                <p>Processing file...</p>
+            </div>
+
+            <div class="result" id="resultFile">
+                <div id="fileResults"></div>
+            </div>
+        </div>
+
+        <!-- URL Analysis Tab -->
+        <div id="url" class="tab-content">
+            <div class="form-group">
+                <label for="urlInput">Enter URL to analyze:</label>
+                <input type="text" id="urlInput" placeholder="https://example.com/review">
+            </div>
+            <button class="btn" onclick="analyzeURL()">Analyze URL Content</button>
+
+            <div class="loading" id="loadingURL">
+                <div class="spinner"></div>
+                <p>Extracting and analyzing content...</p>
+            </div>
+
+            <div class="result" id="resultURL">
+                <div id="urlResults"></div>
+            </div>
+        </div>
+
+        <!-- Batch Analysis Tab -->
+        <div id="batch" class="tab-content">
+            <div class="form-group">
+                <label for="batchText">Enter multiple reviews (one per line):</label>
+                <textarea id="batchText" placeholder="Review 1&#10;Review 2&#10;Review 3&#10;..." rows="8"></textarea>
+            </div>
+            <button class="btn" onclick="analyzeBatch()">Analyze All</button>
+
+            <div class="loading" id="loadingBatch">
+                <div class="spinner"></div>
+                <p>Analyzing batch...</p>
+            </div>
+
+            <div class="result" id="resultBatch">
+                <div id="batchResults"></div>
             </div>
         </div>
     </div>
 
     <script>
-        const reviewInput = document.getElementById('review');
-        const predictBtn = document.getElementById('predictBtn');
-        const loading = document.getElementById('loading');
-        const result = document.getElementById('result');
-        const predictionLabel = document.getElementById('predictionLabel');
-        const barNegative = document.getElementById('barNegative');
-        const barPositive = document.getElementById('barPositive');
+        function switchTab(tabName) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
 
-        predictBtn.addEventListener('click', async () => {
-            const review = reviewInput.value.trim();
+            // Show selected tab
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
+        }
 
+        async function analyzeSingle() {
+            const review = document.getElementById('review').value.trim();
             if (!review) {
                 alert('Please enter a review');
                 return;
             }
 
-            loading.style.display = 'block';
-            result.classList.remove('show');
-            predictBtn.disabled = true;
+            showLoading('loadingSingle');
+            hideResult('resultSingle');
 
             try {
-                const response = await fetch('/predict', {
+                const response = await fetch('/compare', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ review: review })
                 });
 
                 const data = await response.json();
 
-                // Display results
-                const isPositive = data.prediction === 'Positive';
-                predictionLabel.textContent = data.prediction;
-                predictionLabel.className = isPositive ? 'prediction positive' : 'prediction negative';
+                // Update Scratch model results
+                updateModelResult('scratch', data.scratch);
+                // Update Deep Learning model results
+                updateModelResult('dl', data.deep_learning);
 
-                const negProb = (data.probability_negative * 100).toFixed(1);
-                const posProb = (data.probability_positive * 100).toFixed(1);
+                // Show agreement
+                const agreementEl = document.getElementById('agreement');
+                agreementEl.textContent = `Models ${data.agreement ? 'AGREE' : 'DISAGREE'}`;
+                agreementEl.className = `agreement ${data.agreement ? 'yes' : 'no'}`;
 
-                barNegative.style.width = negProb + '%';
-                barNegative.textContent = negProb + '%';
-
-                barPositive.style.width = posProb + '%';
-                barPositive.textContent = posProb + '%';
-
-                result.classList.add('show');
+                showResult('resultSingle');
 
             } catch (error) {
                 alert('Error: ' + error.message);
             } finally {
-                loading.style.display = 'none';
-                predictBtn.disabled = false;
+                hideLoading('loadingSingle');
             }
-        });
+        }
 
-        // Allow Enter key to predict
-        reviewInput.addEventListener('keydown', (e) => {
+        function updateModelResult(prefix, result) {
+            const predictionEl = document.getElementById(prefix + 'Prediction');
+
+            // Kiểm tra lỗi
+            if (result.error) {
+                predictionEl.textContent = 'Model Error';
+                predictionEl.className = 'prediction negative';
+
+                const barNegative = document.getElementById(prefix + 'BarNegative');
+                const barPositive = document.getElementById(prefix + 'BarPositive');
+                barNegative.style.width = '100%';
+                barNegative.textContent = 'Error';
+                barPositive.style.width = '0%';
+                barPositive.textContent = '';
+                return;
+            }
+
+            const isPositive = result.prediction === 'Positive';
+
+            // Update prediction text
+            predictionEl.textContent = result.prediction;
+            predictionEl.className = `prediction ${isPositive ? 'positive' : 'negative'}`;
+
+            // Update confidence bars
+            const negProb = (result.probability_negative * 100).toFixed(1);
+            const posProb = (result.probability_positive * 100).toFixed(1);
+
+            const barNegative = document.getElementById(prefix + 'BarNegative');
+            const barPositive = document.getElementById(prefix + 'BarPositive');
+
+            barNegative.style.width = negProb + '%';
+            barNegative.textContent = negProb + '%';
+            barPositive.style.width = posProb + '%';
+            barPositive.textContent = posProb + '%';
+        }
+
+        async function analyzeFile() {
+            const fileInput = document.getElementById('fileUpload');
+            const file = fileInput.files[0];
+
+            if (!file) {
+                alert('Please select a file');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            showLoading('loadingFile');
+            hideResult('resultFile');
+
+            try {
+                const response = await fetch('/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (data.error) {
+                    throw new Error(data.error);
+                }
+
+                displayFileResults(data);
+
+            } catch (error) {
+                alert('Error: ' + error.message);
+            } finally {
+                hideLoading('loadingFile');
+            }
+        }
+
+        function displayFileResults(data) {
+            const container = document.getElementById('fileResults');
+            container.innerHTML = `
+                <h3>File Analysis Results</h3>
+                <p><strong>Filename:</strong> ${data.filename}</p>
+                <p><strong>Total Reviews Analyzed:</strong> ${data.total_reviews}</p>
+                
+                <table class="results-table">
+                    <thead>
+                        <tr>
+                            <th>Review Preview</th>
+                            <th>Scratch Model</th>
+                            <th>Deep Learning</th>
+                            <th>Agreement</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${data.results.map(item => `
+                            <tr>
+                                <td>${item.text}</td>
+                                <td>
+                                    <span class="${item.scratch.prediction === 'Positive' ? 'positive-badge' : 'negative-badge'}">
+                                        ${item.scratch.prediction} (${(item.scratch.confidence * 100).toFixed(1)}%)
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="${item.deep_learning.prediction === 'Positive' ? 'positive-badge' : 'negative-badge'}">
+                                        ${item.deep_learning.prediction} (${(item.deep_learning.confidence * 100).toFixed(1)}%)
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="${item.agreement ? 'positive-badge' : 'negative-badge'}">
+                                        ${item.agreement ? '✓' : '✗'}
+                                    </span>
+                                </td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+
+            showResult('resultFile');
+        }
+
+        async function analyzeURL() {
+            const url = document.getElementById('urlInput').value.trim();
+            if (!url) {
+                alert('Please enter a URL');
+                return;
+            }
+
+            showLoading('loadingURL');
+            hideResult('resultURL');
+
+            try {
+                const response = await fetch('/analyze_url', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ url: url })
+                });
+
+                const data = await response.json();
+
+                if (data.error) {
+                    throw new Error(data.error);
+                }
+
+                displayURLResults(data);
+
+            } catch (error) {
+                alert('Error: ' + error.message);
+            } finally {
+                hideLoading('loadingURL');
+            }
+        }
+
+        function displayURLResults(data) {
+            const container = document.getElementById('urlResults');
+            container.innerHTML = `
+                <h3>URL Analysis Results</h3>
+                <p><strong>URL:</strong> ${data.url}</p>
+                <p><strong>Content Preview:</strong> ${data.content_preview}</p>
+                
+                <div class="model-comparison">
+                    <div class="model-result">
+                        <div class="model-header">🤖 Scratch Model</div>
+                        <div class="prediction ${data.scratch.prediction === 'Positive' ? 'positive' : 'negative'}">
+                            ${data.scratch.prediction}
+                        </div>
+                        <p>Confidence: ${(data.scratch.confidence * 100).toFixed(1)}%</p>
+                    </div>
+                    <div class="model-result">
+                        <div class="model-header">🧠 Deep Learning Model</div>
+                        <div class="prediction ${data.deep_learning.prediction === 'Positive' ? 'positive' : 'negative'}">
+                            ${data.deep_learning.prediction}
+                        </div>
+                        <p>Confidence: ${(data.deep_learning.confidence * 100).toFixed(1)}%</p>
+                    </div>
+                </div>
+                <div class="agreement ${data.agreement ? 'yes' : 'no'}">
+                    Models ${data.agreement ? 'AGREE' : 'DISAGREE'}
+                </div>
+            `;
+
+            showResult('resultURL');
+        }
+
+        async function analyzeBatch() {
+            const batchText = document.getElementById('batchText').value.trim();
+            if (!batchText) {
+                alert('Please enter some reviews');
+                return;
+            }
+
+            const texts = batchText.split('\n').filter(text => text.trim());
+            if (texts.length > 50) {
+                alert('Please limit to 50 reviews maximum');
+                return;
+            }
+
+            showLoading('loadingBatch');
+            hideResult('resultBatch');
+
+            try {
+                const response = await fetch('/batch_analyze', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ texts: texts })
+                });
+
+                const data = await response.json();
+
+                if (data.error) {
+                    throw new Error(data.error);
+                }
+
+                displayBatchResults(data);
+
+            } catch (error) {
+                alert('Error: ' + error.message);
+            } finally {
+                hideLoading('loadingBatch');
+            }
+        }
+
+        function displayBatchResults(data) {
+            const container = document.getElementById('batchResults');
+            container.innerHTML = `
+                <h3>Batch Analysis Results</h3>
+                <p><strong>Total Reviews Analyzed:</strong> ${data.total_analyzed}</p>
+                
+                <table class="results-table">
+                    <thead>
+                        <tr>
+                            <th>Review Preview</th>
+                            <th>Scratch Model</th>
+                            <th>Deep Learning</th>
+                            <th>Agreement</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${data.results.map(item => `
+                            <tr>
+                                <td>${item.text}</td>
+                                <td>
+                                    <span class="${item.scratch.prediction === 'Positive' ? 'positive-badge' : 'negative-badge'}">
+                                        ${item.scratch.prediction} (${(item.scratch.confidence * 100).toFixed(1)}%)
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="${item.deep_learning.prediction === 'Positive' ? 'positive-badge' : 'negative-badge'}">
+                                        ${item.deep_learning.prediction} (${(item.deep_learning.confidence * 100).toFixed(1)}%)
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="${item.agreement ? 'positive-badge' : 'negative-badge'}">
+                                        ${item.agreement ? '✓' : '✗'}
+                                    </span>
+                                </td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+
+            showResult('resultBatch');
+        }
+
+        function showLoading(loadingId) {
+            document.getElementById(loadingId).style.display = 'block';
+        }
+
+        function hideLoading(loadingId) {
+            document.getElementById(loadingId).style.display = 'none';
+        }
+
+        function showResult(resultId) {
+            document.getElementById(resultId).classList.add('show');
+        }
+
+        function hideResult(resultId) {
+            document.getElementById(resultId).classList.remove('show');
+        }
+
+        // Allow Enter key in single review
+        document.getElementById('review').addEventListener('keydown', (e) => {
             if (e.ctrlKey && e.key === 'Enter') {
-                predictBtn.click();
+                analyzeSingle();
             }
         });
     </script>
